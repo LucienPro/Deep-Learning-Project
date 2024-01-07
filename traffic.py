@@ -74,27 +74,30 @@ def load_data(data_dir):
 
 
 def get_model():
-    """
-    Returns a compiled convolutional neural network model. Assume that the
-    `input_shape` of the first layer is `(IMG_WIDTH, IMG_HEIGHT, 3)`.
-    The output layer should have `NUM_CATEGORIES` units, one for each category.
-    """
-        model = tf.keras.Sequential([
-        tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(IMG_WIDTH, IMG_HEIGHT, 3)),
-        tf.keras.layers.MaxPooling2D((2, 2)),
-        tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
-        tf.keras.layers.MaxPooling2D((2, 2)),
-        tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(128, activation='relu'),
-        tf.keras.layers.Dense(NUM_CATEGORIES, activation='softmax')
-    ])
+    # Input layer
+    inputs = tf.keras.Input(shape=(IMG_WIDTH, IMG_HEIGHT, 3))
 
-    model.compile(optimizer='adam',
+    # First layer
+    x = tf.keras.layers.Conv2D(64, (5, 5), activation='relu')(inputs)
+    x = tf.keras.layers.MaxPooling2D((3, 3))(x)
+
+    # Other layer
+    x = tf.keras.layers.Conv2D(32, (3, 3), activation='relu')(x)
+    x = tf.keras.layers.MaxPooling2D((2, 2))(x)
+    x = tf.keras.layers.Flatten()(x)
+
+    x = tf.keras.layers.Dense(256, activation='relu')(x)
+    x = tf.keras.layers.Dropout(0.1)(x)
+
+    outputs = tf.keras.layers.Dense(NUM_CATEGORIES, activation='softmax')(x)
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+
+    # Training process
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
                   loss='categorical_crossentropy',
                   metrics=['accuracy'])
 
     return model
-
 
 if __name__ == "__main__":
     main()
